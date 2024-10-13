@@ -8,6 +8,11 @@ Reports song usage to CCLI based on a list of song CCLI numbers
    ````
     pip install requests selenium
    ````
+- run the main script:
+  ````
+  python auto-ccli.py
+  ````
+
 ## How it works
 CCLI doesn't have a public API for reporting, nor does it have any other method of authenticating a user to send requests to their servers. So, this script attempts to obtain your authentication cookies by opening a browser session, and observing your login headers.
 
