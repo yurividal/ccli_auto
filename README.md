@@ -11,9 +11,7 @@ Reports song usage to CCLI based on a list of song CCLI numbers
 ## How it works
 CCLI doesn't have a public API for reporting, nor does it have any other method of authenticating a user to send requests to their servers. So, this script attempts to obtain your authentication cookies by opening a browser session, and observing your login headers.
 
-Addidionally, in order to submit a song usage, the server also requires a secret Token. There might be a smarter way of obtaining this token, but for now, this script will manually submit your first CCLI song, and observe the headers of that request, in order to obtain the Token.
-
-Once the token and the authentication cookies are obtained, the script then proceeds to reporting the rest of the songs.
+Once the token and the authentication cookies are obtained, the script then proceeds to reporting the songs.
 
 In order to report a song via API call, the server requires the CCLI id, the song id, and the offical song title.
 

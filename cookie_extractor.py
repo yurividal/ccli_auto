@@ -4,6 +4,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import json
 import variables
+import requests
+import time
 
 # Add your login credentials here
 email = variables.ccli_userame
@@ -82,8 +84,10 @@ def extract_required_cookies(cookies):
     for cookie in cookies:
         cookie_name = cookie["name"]
         cookie_value = cookie["value"]
+        # Check if the cookie name matches the required cookies
         if cookie_name in required_cookies:
             cookies_dict[cookie_name] = cookie_value
+        # Handle antiforgery cookies
         if cookie_name.startswith(antiforgery_cookie_prefix):
             cookies_dict[cookie_name] = cookie_value
     return cookies_dict
@@ -111,12 +115,48 @@ def handle_cookie_popup():
         pass
 
 
-def gui_login(first_ccli=variables.song_list[0]):
+def getVerificationToken(cookies):
+
+    print("Attempting to get verification token...")
+
+    # Define the URL
+    url = "https://reporting.ccli.com/api/antiForgery"
+
+    # Define the headers from the raw capture
+    headers = {
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/115.0",
+        "Accept": "application/json, text/plain, */*",
+        "Accept-Language": "en-US,en;q=0.5",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Referer": "https://reporting.ccli.com/",
+        "Content-Type": "application/json;charset=utf-8",
+        "Sec-Fetch-Dest": "empty",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Site": "same-origin",
+        "Te": "trailers",
+    }
+
+    # Define the cookies from the raw capture
+    cookies = cookies
+
+    # Send the GET request
+    try:
+        response = requests.get(url, headers=headers, cookies=cookies)
+    except Exception as e:
+        print(f"Error: {e}")
+        return None
+
+    if response.status_code == 200:
+        return response.text.strip('"')
+    else:
+        print("Error getting verification token")
+        return None
+
+
+def gui_login():
     global driver  # Declare driver as global
     driver = webdriver.Chrome(options=options)
-    driver.get(
-        "https://reporting.ccli.com/search?s=" + first_ccli + "&page=1&category=all"
-    )
+    driver.get("https://reporting.ccli.com/search")
 
     try:
 
@@ -141,17 +181,26 @@ def gui_login(first_ccli=variables.song_list[0]):
         # Wait until redirected back to the desired page
         WebDriverWait(driver, 20).until(EC.url_contains("reporting.ccli.com/search"))
 
-        print(
-            "Will manually report the first song, in order t generate the necessary tokens for automation...\n"
-        )
-
-        report_first_song()
-
-        # Continuously listen to performance logs and capture POST requests
+        cookies = []
         while True:
-            logs = driver.get_log("performance")
-            if capture_post_requests(logs):
+
+            cookies = driver.get_cookies()
+            time.sleep(5)  # Adjust the interval if necessary
+
+            # Check if we have all required cookies
+            if are_cookies_captured(cookies):
+                print("All required cookies captured!")
                 break
+            else:
+                print("Still waiting for all cookies...")
+
+        # Filter and print only the required cookies
+        filtered_cookies = extract_required_cookies(cookies)
+        # for cookie_name, cookie_value in filtered_cookies.items():
+        #     print(f"Cookie Name: {cookie_name}, Value: {cookie_value}")
+
+        # Get the verification token
+        request_verification_token = getVerificationToken(filtered_cookies)
 
     except Exception as e:
         print(f"Error: {e}")
@@ -160,8 +209,7 @@ def gui_login(first_ccli=variables.song_list[0]):
         driver.quit()
 
     cookie_string = (
-        "; ".join([f"{name}={value}" for name, value in required_cookies_dict.items()])
-        + ";"
+        "; ".join([f"{name}={value}" for name, value in filtered_cookies.items()]) + ";"
     )
     result = (request_verification_token, cookie_string)
     return result

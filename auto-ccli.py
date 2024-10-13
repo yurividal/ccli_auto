@@ -5,6 +5,8 @@ import variables
 song_list = variables.song_list
 
 RequestVerificationToken, Cookie = gui_login()
+
+
 # Alternatively, you can simply hardcode the values here if you got them from a browser session.
 
 
@@ -112,11 +114,11 @@ def report(song_dict):
         print("Error submitting report:", response_post.status_code, response_post.text)
 
 
-if (len(song_list)) < 2:
-    print(
-        "Looks like only one song in the list. No need to automate anything else. Exiting."
-    )
-    exit()
+# if (len(song_list)) < 2:
+#     print(
+#         "Looks like only one song in the list. No need to automate anything else. Exiting."
+#     )
+#     exit()
 
 songs_dict = {}
 
