@@ -52,8 +52,18 @@ def search(song_ccli, Cookie, songs_dict):
             # Add the Song object to the dictionary with CCLI as the key
             songs_dict[ccli_number] = song
     elif response_search.status_code == 401:
-        print("Unauthorized. Please check your cookies.")
-        exit()
+        print(
+            "Error submitting report, HTTP Response Code: 401, Probably bad Cookie. \n Script will now delete the current token and cookies \n Please run the script again to get new token and cookies."
+        )
+
+        import os
+
+        try:
+            os.remove("RequestVerificationToken.txt")
+            os.remove("Cookie.txt")
+        except:
+            pass
+
     else:
         print("Error: ", response_search.status_code)
 
@@ -105,14 +115,28 @@ def report(songs_dict, Cookie, RequestVerificationToken):
         print("\n" + str(totalNumberOfSongs) + " songs reported successfully.")
     elif response_post.status_code == 409:
         print(
-            "Error submitting report, HTTP Response Code: 409, Probably bad RequestVerificationToken"
+            "Error submitting report, HTTP Response Code: 409, Probably bad RequestVerificationToken. \n Script will now delete the current token and cookies \n Please run the script again to get new token and cookies."
         )
 
-        # Delete the RequestVerificationToken file
         import os
 
-        os.remove("RequestVerificationToken.txt")
+        try:
+            os.remove("RequestVerificationToken.txt")
+            os.remove("Cookie.txt")
+        except:
+            pass
+    elif response_post.status_code == 401:
+        print(
+            "Error submitting report, HTTP Response Code: 401, Probably bad Cookie. \n Script will now delete the current token and cookies \n Please run the script again to get new token and cookies."
+        )
 
+        import os
+
+        try:
+            os.remove("RequestVerificationToken.txt")
+            os.remove("Cookie.txt")
+        except:
+            pass
     else:
         print("Error submitting report:", response_post.status_code, response_post.text)
 
