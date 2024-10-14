@@ -1,13 +1,7 @@
 import requests
 from cookie_extractor import gui_login
+from get_cookies_and_token import get_cookie_and_token
 import variables
-
-song_list = variables.song_list
-
-RequestVerificationToken, Cookie = gui_login()
-
-
-# Alternatively, you can simply hardcode the values here if you got them from a browser session.
 
 
 class Song:
@@ -20,7 +14,7 @@ class Song:
         return f"{self.ccli_number} - {self.title} - {self.song_id}"
 
 
-def search(song_ccli):
+def search(song_ccli, Cookie, songs_dict):
 
     url_search = "https://reporting.ccli.com/api/search"
 
@@ -64,7 +58,7 @@ def search(song_ccli):
         print("Error: ", response_search.status_code)
 
 
-def report(song_dict):
+def report(songs_dict, Cookie, RequestVerificationToken):
 
     data = {
         "songs": [],
@@ -84,7 +78,9 @@ def report(song_dict):
         # Append the song to the "songs" list in the data
         data["songs"].append(song_entry)
 
-    first_song = next(iter(song_dict.values()))
+    totalNumberOfSongs = len(data["songs"])
+
+    first_song = next(iter(songs_dict.values()))
 
     url_report = "https://reporting.ccli.com/api/report"
     headers_post = {
@@ -105,27 +101,42 @@ def report(song_dict):
     response_post = requests.post(url_report, json=data, headers=headers_post)
 
     if response_post.status_code == 200:
-        print("Report successful!")
+
+        print("\n" + str(totalNumberOfSongs) + " songs reported successfully.")
     elif response_post.status_code == 409:
         print(
             "Error submitting report, HTTP Response Code: 409, Probably bad RequestVerificationToken"
         )
+
+        # Delete the RequestVerificationToken file
+        import os
+
+        os.remove("RequestVerificationToken.txt")
+
     else:
         print("Error submitting report:", response_post.status_code, response_post.text)
 
 
-# if (len(song_list)) < 2:
-#     print(
-#         "Looks like only one song in the list. No need to automate anything else. Exiting."
-#     )
-#     exit()
+def main():
+    song_list = variables.song_list
+    # if (len(song_list)) < 2:
+    #     print(
+    #         "Looks like only one song in the list. No need to automate anything else. Exiting."
+    #     )
+    #     exit()
 
-songs_dict = {}
+    RequestVerificationToken, Cookie = get_cookie_and_token()
 
-for song in song_list:
-    search(song)
+    songs_dict = {}
 
-for song in songs_dict.values():
-    print(song)
+    for song in song_list:
+        search(song, Cookie, songs_dict)
 
-report(songs_dict)
+    for song in songs_dict.values():
+        print(song)
+
+    report(songs_dict, Cookie, RequestVerificationToken)
+
+
+if __name__ == "__main__":
+    main()

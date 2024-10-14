@@ -6,6 +6,7 @@ import json
 import variables
 import requests
 import time
+import random
 
 # Add your login credentials here
 email = variables.ccli_userame
@@ -172,7 +173,14 @@ def gui_login():
         password_field = driver.find_element(By.ID, "Password")
 
         email_field.send_keys(email)
-        password_field.send_keys(password)
+        # pause 2 seconds
+        time.sleep(2)
+
+        # type the password key-by-key to try to trick the bot detection
+        for letter in password:
+            password_field.send_keys(letter)
+            # wait random time between 0.1 and 0.3 seconds
+            time.sleep(random.uniform(0.1, 0.3))
 
         # Click the login button
         login_button = driver.find_element(By.ID, "sign-in")
@@ -211,6 +219,7 @@ def gui_login():
     cookie_string = (
         "; ".join([f"{name}={value}" for name, value in filtered_cookies.items()]) + ";"
     )
+
     result = (request_verification_token, cookie_string)
     return result
 
