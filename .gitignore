@@ -1,3 +1,5 @@
 variables.py
 __pycache__/
 *.txt
+Cookie.txt
+RequestVerificationToken.txt

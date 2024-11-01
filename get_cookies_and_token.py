@@ -1,5 +1,6 @@
 import requests
 from cookie_extractor import gui_login
+import os
 
 
 def get_cookie_and_token():
@@ -7,6 +8,14 @@ def get_cookie_and_token():
     try:
         # Read RequestVerificationToken from a file
         print("Attempting to get RequestVerificationToken and Cookie from file.")
+
+        # check if file ReqyestVerificationToken.txt exists
+        if not os.path.exists("RequestVerificationToken.txt") or not os.path.exists(
+            "Cookie.txt"
+        ):
+            raise Exception(
+                "File RequestVerificationToken.txt or Cookie.txt not found."
+            )
 
         with open("RequestVerificationToken.txt", "r") as f:
             RequestVerificationToken = f.read()

@@ -37,6 +37,7 @@ def search(song_ccli, Cookie, songs_dict):
         "Cookie": "(" + Cookie + ")",
     }
 
+    print("Getting details for song with CCLI number: ", song_ccli)
     response_search = requests.get(url_search, params=params, headers=headers_search)
 
     if response_search.status_code == 200:
