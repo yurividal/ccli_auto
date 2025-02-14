@@ -3,12 +3,14 @@ from get_cookies_and_token import get_cookie_and_token
 import variables
 import json
 
+type = "lyrics"  # lyrics or sheetmusic
+
 
 def get_history(Cookie):
     print("Attempting to get report history...")
 
     # Define the URL
-    url = "https://reporting.ccli.com/api/history/lyrics?lastMonthRange=3"
+    url = "https://reporting.ccli.com/api/history/" + type + "?lastMonthRange=3"
 
     # Define the headers from the raw capture
     headers = {
@@ -43,7 +45,7 @@ def delete_report(report_id, Cookie, RequestVerificationToken):
     print(f"Deleting report with ID: {report_id}")
 
     # Define the URL for the DELETE request
-    url = f"https://reporting.ccli.com/api/report/lyrics/{report_id}"
+    url = f"https://reporting.ccli.com/api/report/{type}/{report_id}"
 
     # Define the headers (assuming the same headers are valid for the DELETE request)
     headers = {

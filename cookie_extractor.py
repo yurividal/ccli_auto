@@ -183,7 +183,16 @@ def gui_login():
             time.sleep(random.uniform(0.1, 0.3))
 
         # Click the login button
+
         login_button = driver.find_element(By.ID, "sign-in")
+        # change the html to enable the login button
+        try:
+            driver.execute_script(
+                "document.getElementById('sign-in').removeAttribute('disabled');"
+            )
+        except:
+            pass
+
         login_button.click()
 
         # Wait until redirected back to the desired page

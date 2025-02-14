@@ -2,6 +2,7 @@ import requests
 from cookie_extractor import gui_login
 from get_cookies_and_token import get_cookie_and_token
 import variables
+from pathlib import Path
 
 
 class Song:
@@ -142,13 +143,73 @@ def report(songs_dict, Cookie, RequestVerificationToken):
         print("Error submitting report:", response_post.status_code, response_post.text)
 
 
+def getsSongList():
+
+    if variables.getFromOpenSong:
+        print("Getting song list from OpenSong folder Activity xml file")
+        import xml.etree.ElementTree as ET
+
+        # Path to the ActivityLog.xml file
+        activity_log_path = (
+            Path(variables.opensongFolder) / "Settings" / "ActivityLog.xml"
+        )
+
+        try:
+            # Parse the XML file
+            tree = ET.parse(activity_log_path)
+            root = tree.getroot()
+
+            ccli_items = []
+
+            for entry in root:
+                ccli = entry.find("ccli").text
+                if ccli:
+                    ccli_items.append(ccli)
+
+            return ccli_items
+
+        except Exception as e:
+            print(
+                f"Error accessing the file: {e}"
+                + "\n\n\n"
+                + "Please check the path. Maybe you already reported all the songs, or the Activity xml file is not in the correct location."
+            )
+            exit()
+
+    else:
+        if not variables.song_list or len(variables.song_list) == 0:
+            print(
+                "Please fill in the song_list in variables.py or use the OpenSong option"
+            )
+            exit()
+        return variables.song_list
+
+
+def cleanupOpenSong():
+
+    activity_log_path = Path(variables.opensongFolder) / "Settings" / "ActivityLog.xml"
+    # rename ActivityLog.xml to ActivityLog<todays date>.xml and move it into the Subfolder "Reported"
+    import shutil
+    import datetime
+    import os
+
+    today = datetime.date.today()
+    new_filename = f"ActivityLog{today}.xml"
+    new_folder = Path(variables.opensongFolder) / "Settings" / "Reported"
+    new_path = new_folder / new_filename
+
+    try:
+        os.makedirs(new_folder, exist_ok=True)
+        shutil.move(activity_log_path, new_path)
+    except Exception as e:
+        print(f"Error moving file: {e}")
+        exit()
+    else:
+        print(f"File moved to {new_path}")
+
+
 def main():
-    song_list = variables.song_list
-    # if (len(song_list)) < 2:
-    #     print(
-    #         "Looks like only one song in the list. No need to automate anything else. Exiting."
-    #     )
-    #     exit()
+    song_list = getsSongList()
 
     RequestVerificationToken, Cookie = get_cookie_and_token()
 
@@ -160,7 +221,15 @@ def main():
     for song in songs_dict.values():
         print(song)
 
-    report(songs_dict, Cookie, RequestVerificationToken)
+    try:
+        report(songs_dict, Cookie, RequestVerificationToken)
+    except Exception as e:
+        print(f"Error: {e}")
+        exit()
+
+    else:
+        if variables.getFromOpenSong:
+            cleanupOpenSong()
 
 
 if __name__ == "__main__":
